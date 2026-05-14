@@ -1,6 +1,6 @@
 {
   "name": "writers-voice",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Free constructed-voice skill for AI agents. Anchors writing to a training-data author blend (from openwriter.io/writers-voice), agent best-effort extracts NEVER rules and presentation fingerprints from a growing local corpus. Pure markdown — no dependencies. Gets better as you add samples.",
   "type": "module",
   "license": "MIT",

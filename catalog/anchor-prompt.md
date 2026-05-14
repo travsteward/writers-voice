@@ -19,10 +19,50 @@ If the writer discusses biology, you do NOT match them to Dawkins because of the
 
 ## Inputs the agent loads before running this protocol
 
-1. **The user's corpus** — every file in `voice/corpus/` (strip YAML frontmatter, concatenate).
+1. **The user's corpus** — every file in `voice/corpus/` (strip YAML frontmatter). **Keep each sample separate** — do not concatenate yet. You need per-sample analysis before the blend.
 2. **The deterministic stats** — read `voice/stats.md` if it exists. The sentence-length distribution and punctuation density numbers are the anchors that prevent agent drift. If `stats.md` doesn't exist yet, run the Analysis Protocol first to generate it.
 3. **The author hint list** — read `catalog/author-hints.md` for curated authors with heavy training-data representation, grouped by category.
 4. **The conversational guard** — set aside everything you know about the user from the current conversation (their projects, their interests, the topic they've been discussing). Score the corpus as if you've never read it before, with no context.
+
+## Per-sample register analysis (run BEFORE final scoring)
+
+This step prevents the single-large-sample bias that overweights features concentrated in one piece. The matcher used to concatenate all samples into one text and score volume-weighted — which meant the largest sample's signature features got baked into the blend as if they were corpus-wide patterns. They aren't.
+
+For each sample in `voice/corpus/`, record:
+
+1. **Word count** — split on whitespace, count tokens.
+2. **Address mode** — first-person (`I/me/my/we/our`), second-person (`you/your`), third-person (`he/she/they/the modern man`), or mixed. If mixed, note the dominant mode.
+3. **Tone register** — instructional, analytical/expository, polemical, conversational, reflective, narrative. Pick the dominant register.
+4. **Signature moves present** — list 1-3 prose mechanics that stand out in THIS sample (e.g., anaphoric `Your X.` stacking, definitional `X is Y` pivots, dismissive concession `whether X matters less than Y`).
+
+Build a sample table:
+
+| Sample | Words | Address | Register | Signature moves |
+|--------|-------|---------|----------|-----------------|
+| 001 | 200 | mixed (you + we) | instructional | … |
+| 002 | 100 | generic-you | analytical | … |
+| ... | | | | |
+
+Then compute:
+
+- **Volume share** per sample: `sample_word_count / total_corpus_words * 100`. Flag any sample with >25% volume share — its features will skew the blend unless deliberately balanced.
+- **Register clusters**: group samples by register. Are there 2+ clearly distinct registers (e.g., third-person expository AND second-person instructional)? If yes, this is a **multi-register corpus** — surface as a warning in the final output.
+
+## Register-aware feature validation
+
+When you're about to cite a feature in `features_matched` for any author in the blend, run this check:
+
+1. **In which samples does this feature appear?** List them.
+2. **What share of samples (by count) contains it?**
+3. **What share of corpus volume contains it?**
+
+Then apply the rules:
+
+- **Feature appears in ≥40% of samples by count** → corpus-wide signature, valid to cite without caveat.
+- **Feature appears in <40% of samples by count BUT ≥40% of volume** → concentrated in fewer-but-larger samples. **Cite with caveat**: append `(concentrated in samples N, M — not corpus-wide)`.
+- **Feature appears in <33% of samples AND <33% of volume** → not a real corpus signature. Do NOT cite. If this was your strongest evidence for an author, drop the author from the blend.
+
+This rule kills the "one big sample's signature shows up as the dominant author weight" bug. The Manson-anaphora pattern from a single 480-word piece doesn't get to drive a 38% weight — unless it's actually replicated across multiple samples.
 
 ## Scoring dimensions
 
@@ -95,6 +135,19 @@ Write `voice/anchor.md` in this exact format:
     - <prose feature 2>
 - ...
 
+## Per-Sample Composition
+
+| Sample | Words | Volume % | Address | Register | Signature moves |
+|--------|-------|----------|---------|----------|-----------------|
+| 001 | 200 | 14% | mixed | instructional | … |
+| 002 | 100 | 7% | generic-you | analytical | … |
+
+## Register Diversity
+
+- **Detected registers:** <list, e.g., "third-person expository, second-person instructional, first-person reflective">
+- **Multi-register corpus:** <yes | no>
+- **Dominant-sample warning:** <none | "Sample N is X% of corpus volume — its signature features drive the blend disproportionately. Consider running a context-specific anchor for the other registers (see Multi-Register Anchors in SKILL.md).">
+
 ## Self-check
 
 - Confidence: <high | medium | low>
@@ -105,9 +158,24 @@ Write `voice/anchor.md` in this exact format:
 
 Write in this blended style. Match each author's prose mechanics in proportion
 to weight. Maintain across the conversation.
+
+## When this anchor doesn't fit
+
+If you're writing in a register that this corpus DOESN'T represent well (e.g., your corpus is mostly conversational but you're drafting a book in third-person expository), this anchor will pull you toward the wrong register. Options:
+
+1. Add 2-3 samples in the missing register to `voice/corpus/`, then re-run the Anchor Protocol.
+2. Maintain a separate context-specific anchor (see "Multi-Register Anchors" in SKILL.md). File pattern: `voice/anchor-<context>.md` (e.g., `voice/anchor-book.md`).
 ```
 
 Weights are positive integers summing to exactly 100. Authors listed in descending weight order.
+
+## Recommending a multi-register split
+
+If your register-diversity analysis above flagged the corpus as multi-register, do NOT just produce one blend. After writing the main `voice/anchor.md`, tell the user:
+
+> "Your corpus spans multiple registers: [list them]. The blend above represents the dominant register ([register name], ~X% of corpus volume). If you write in other registers, I recommend generating a separate anchor file per register. Want me to do that now? — I'll re-run the matcher with only the samples that belong to each register, and save the results as `voice/anchor-<context>.md`."
+
+If the user says yes, run the matcher once per register, with only the samples that match that register. Save each as `voice/anchor-<context>.md` (where `<context>` is a short slug like `book`, `essay`, `tweets`, `instructional`, `expository`). The main `voice/anchor.md` stays as the corpus-wide blend with the multi-register warning.
 
 ## When to use this protocol vs the web tool
 
@@ -115,8 +183,9 @@ Weights are positive integers summing to exactly 100. Authors listed in descendi
 |----------|------------------|
 | First-time user, no corpus yet | Web tool (paste 300-800 words from the writing samples they have) |
 | User has already seeded `voice/corpus/` | Either — skill mode is faster (no round-trip) |
-| User wants a shareable result link | Web tool (it stores the blend at `/api/voice-match/r/:id`) |
+| User wants a shareable result link | Web tool (it stores the blend at `/api/writers-voice/r/:id`) |
 | Offline / air-gapped environment | Skill mode (no network needed) |
 | User wants to re-anchor after corpus grows significantly | Skill mode (re-runs over the full corpus, not just a sample) |
+| Multi-register corpus needing per-register anchors | Skill mode only — the web tool doesn't support per-register splits |
 
-The web tool and the skill produce the same `voice/anchor.md` format. Either can replace the other.
+The web tool and the skill produce the same `voice/anchor.md` format. The skill additionally supports per-register anchor files (`voice/anchor-<context>.md`).
