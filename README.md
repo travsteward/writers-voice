@@ -1,8 +1,8 @@
-# voice-anchor
+# voice-match
 
 > Free **constructed voice** for AI agents. The skill-based path to 60-80% voice-matched writing — no API, no signup, no corpus upload to anyone.
 
-Anchors the agent to a training-data author blend (matched at [openwriter.io/voice-anchor](https://openwriter.io/voice-anchor)), then the agent does best-effort extraction of NEVER rules + presentation fingerprints from a corpus you build up on your own disk. Pure markdown — no dependencies. Gets better as you add more samples.
+Anchors the agent to a training-data author blend (matched at [openwriter.io/voice-match](https://openwriter.io/voice-match)), then the agent does best-effort extraction of NEVER rules + presentation fingerprints from a corpus you build up on your own disk. Pure markdown — no dependencies. Gets better as you add more samples.
 
 The free counterpart to **Author's Voice** (the paid OpenWriter plugin with full sample-based RAG and inline edits).
 
@@ -11,15 +11,15 @@ The free counterpart to **Author's Voice** (the paid OpenWriter plugin with full
 ### Claude Code
 
 ```bash
-claude install github:travsteward/voice-anchor
+claude install github:travsteward/voice-match
 ```
 
-That clones to `~/.claude/skills/voice-anchor/` and registers the skill.
+That clones to `~/.claude/skills/voice-match/` and registers the skill.
 
 ### Manual
 
 ```bash
-git clone https://github.com/travsteward/voice-anchor ~/.claude/skills/voice-anchor
+git clone https://github.com/travsteward/voice-match ~/.claude/skills/voice-match
 ```
 
 Restart your Claude Code session.
@@ -29,13 +29,13 @@ Restart your Claude Code session.
 Two paths — pick one:
 
 **Path A — Web tool first (fastest first-run)**
-1. Visit [openwriter.io/voice-anchor](https://openwriter.io/voice-anchor), paste 300-800 words of your writing, copy the result block.
-2. Tell your agent: *"set up my voice anchor"*. Paste the block when prompted.
+1. Visit [openwriter.io/voice-match](https://openwriter.io/voice-match), paste 300-800 words of your writing, copy the result block.
+2. Tell your agent: *"set up my voice match"*. Paste the block when prompted.
 3. **Seed your corpus**: paste 2-5 paragraphs that feel most like you. The agent saves them under `voice/corpus/`.
 4. Done.
 
 **Path B — Skill mode (no web round-trip)**
-1. Tell your agent: *"set up my voice anchor"* and *"I want to skip the web tool."*
+1. Tell your agent: *"set up my voice match"* and *"I want to skip the web tool."*
 2. Paste 2-5 paragraphs of your writing — the agent saves them under `voice/corpus/`.
 3. The agent runs the Anchor Protocol over your corpus and writes `voice/voice-match.md` directly.
 4. Done.
@@ -52,7 +52,7 @@ The skill is self-routing — you don't memorize subcommands. Just tell the agen
 
 Two layers:
 
-- **Programmatic anchor** — [openwriter.io/voice-anchor](https://openwriter.io/voice-anchor). Deterministic feature extraction + Claude-as-matcher. The web tool produces the author blend.
+- **Programmatic anchor** — [openwriter.io/voice-match](https://openwriter.io/voice-match). Deterministic feature extraction + Claude-as-matcher. The web tool produces the author blend.
 - **Best-effort everything else** — this skill. The agent reads `catalog/*.md` (instructions on what to look for) plus your `voice/corpus/*` (your writing) and writes the analysis output files.
 
 No Node scripts. No `npm install`. Pure markdown skill. The agent is the extractor.
@@ -63,7 +63,7 @@ Your voice profile lives in `voice/` as six `.md` files:
 
 | File | Source | Purpose |
 |------|--------|---------|
-| `voice-match.md` | Paste from [openwriter.io/voice-anchor](https://openwriter.io/voice-anchor) | 3-5 training-data authors with weights — the anchor |
+| `voice-match.md` | Paste from [openwriter.io/voice-match](https://openwriter.io/voice-match) | 3-5 training-data authors with weights — the anchor |
 | `stats.md` | Agent best-effort from corpus | Sentence distribution + punctuation density |
 | `never-rules.md` | Agent + manual additions | AI words/transitions/phrases to never use |
 | `fingerprints.md` | Agent + manual overrides | Exact presentation choices (Oxford comma, em-dash spacing, etc.) |
@@ -100,13 +100,13 @@ Just keep adding writing samples over time. The skill nudges you toward the next
 
 - Your voice data lives entirely on your disk. `.gitignore` excludes everything in `voice/` from the public repo.
 - The skill never uploads your corpus anywhere.
-- The only thing that leaves your machine is the initial 300-800 word paste into openwriter.io/voice-anchor for the anchor matching step — that's cached 24h by hash and never trained on (Anthropic API retention controls honored).
+- The only thing that leaves your machine is the initial 300-800 word paste into openwriter.io/voice-match for the anchor matching step — that's cached 24h by hash and never trained on (Anthropic API retention controls honored).
 
 ## Companion Skills
 
 - **`/anti-ai`** — post-pass that strips AI fingerprints from any text. Pairs well as a final step.
 - **`/voice-presets`** — alternative for users who want a generic frame (authority / provocateur / logical / storyteller / business) instead of a custom anchor. Zero setup.
-- **Author's Voice** plugin (paid, OpenWriter) — the upgrade: full sample-based RAG with deterministic extraction, inline edits, no manual setup. The skill nudges you toward it when you outgrow voice-anchor.
+- **Author's Voice** plugin (paid, OpenWriter) — the upgrade: full sample-based RAG with deterministic extraction, inline edits, no manual setup. The skill nudges you toward it when you outgrow voice-match.
 
 ## Re-analyzing your corpus
 
@@ -121,7 +121,7 @@ There's no CLI to run. The analysis is the agent reading and writing markdown.
 ## Requirements
 
 - A Claude Code or Claude API agent that supports skills (no Node.js dependency)
-- An initial visit to [openwriter.io/voice-anchor](https://openwriter.io/voice-anchor) for the anchor (free, no signup)
+- An initial visit to [openwriter.io/voice-match](https://openwriter.io/voice-match) for the anchor (free, no signup)
 
 ## License
 

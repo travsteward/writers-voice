@@ -1,7 +1,7 @@
 # Anchor Prompt
 
 > The matcher logic the agent follows to produce a voice anchor blend in-agent (no web tool round-trip).
-> Ported from the openwriter.io/voice-anchor matcher prompt — same scoring rubric, same self-criticism step, same hard rules.
+> Ported from the openwriter.io/voice-match matcher prompt — same scoring rubric, same self-criticism step, same hard rules.
 
 ## Role
 
@@ -78,9 +78,9 @@ After your check, set the self-check flags:
 Write `voice/voice-match.md` in this exact format:
 
 ```markdown
-# Voice Anchor Blend
+# Voice Match Blend
 
-> Generated in-agent by the voice-anchor skill (no web tool round-trip).
+> Generated in-agent by the voice-match skill (no web tool round-trip).
 > Pasted on YYYY-MM-DD.
 > Context: <general | tweets | essays | newsletter | email>
 
