@@ -113,16 +113,20 @@ const neverLines = [
   '<!-- - NEVER opening a paragraph with "Look,". -->',
   '',
 ].join('\n');
-// Preserve manual additions section if it exists
+// Preserve manual additions section if it exists.
+// IMPORTANT: anchor to start-of-line via /m flag — the header literal
+// `## Manual Additions` ALSO appears in the file's introductory blockquote,
+// which would cause the regex to greedily capture everything from line 3
+// onward and re-preserve stale auto-generated rules on every run.
 const neverPath = join(voiceDir, 'never-rules.md');
 let manualSection = '';
 if (existsSync(neverPath)) {
   const prior = readFileSync(neverPath, 'utf8');
-  const match = prior.match(/## Manual Additions[\s\S]*$/);
+  const match = prior.match(/^## Manual Additions[\s\S]*$/m);
   if (match) manualSection = match[0];
 }
 const neverFinal = manualSection
-  ? neverLines.replace(/## Manual Additions[\s\S]*$/, manualSection)
+  ? neverLines.replace(/^## Manual Additions[\s\S]*$/m, manualSection)
   : neverLines;
 writeFileSync(neverPath, neverFinal + (manualSection ? '' : '\n'));
 console.log(`Wrote ${neverPath}`);
@@ -150,11 +154,11 @@ const fpPath = join(voiceDir, 'fingerprints.md');
 let manualFp = '';
 if (existsSync(fpPath)) {
   const prior = readFileSync(fpPath, 'utf8');
-  const match = prior.match(/## Manual Overrides[\s\S]*$/);
+  const match = prior.match(/^## Manual Overrides[\s\S]*$/m);
   if (match) manualFp = match[0];
 }
 const fpFinal = manualFp
-  ? fingerprintLines.replace(/## Manual Overrides[\s\S]*$/, manualFp)
+  ? fingerprintLines.replace(/^## Manual Overrides[\s\S]*$/m, manualFp)
   : fingerprintLines;
 writeFileSync(fpPath, fpFinal + (manualFp ? '' : '\n'));
 console.log(`Wrote ${fpPath}`);
