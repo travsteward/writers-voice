@@ -8,21 +8,31 @@ The free counterpart to **Author's Voice** (the paid OpenWriter plugin with full
 
 ## Install
 
+The skill is **agent-agnostic** — pure markdown, no language runtime. Any LLM-based agent that can read `SKILL.md` and follow instructions can use it. Install via whichever path matches your agent:
+
 ### Claude Code
 
 ```bash
 claude install github:travsteward/voice-match
 ```
 
-That clones to `~/.claude/skills/voice-match/` and registers the skill.
+Clones to `~/.claude/skills/voice-match/` and registers the skill with Claude Code.
 
-### Manual
+### Vercel skills CLI (Claude Code, Codex, Cursor, and other agents)
 
 ```bash
-git clone https://github.com/travsteward/voice-match ~/.claude/skills/voice-match
+npx skills add travsteward/voice-match
 ```
 
-Restart your Claude Code session.
+Vercel's [open agent skills ecosystem](https://skills.sh) — works across every agent the CLI supports.
+
+### Manual (any agent)
+
+```bash
+git clone https://github.com/travsteward/voice-match
+```
+
+Then drop the cloned folder wherever your agent loads skills from. The `SKILL.md` at the root has the trigger phrases and routing logic the agent reads.
 
 ## Quick Start
 
