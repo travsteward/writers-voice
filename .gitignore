@@ -1,6 +1,7 @@
 # User voice data — never committed.
 # Each installation's voice/ is personal config.
 voice/anchor.md
+voice/anchor-*.md
 voice/stats.md
 voice/never-rules.md
 voice/fingerprints.md

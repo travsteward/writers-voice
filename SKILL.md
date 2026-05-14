@@ -74,7 +74,7 @@ Based on what the user said:
 | "add this essay to my voice profile" / "save this writing" | Append to `voice/corpus/`, run the **Analysis Protocol** |
 | "what's my voice status" / "voice status" | Read and report `voice/status.md` |
 | "what's locked" / "what do I unlock at the next tier" | Read `voice/status.md`, report locked features |
-| (User asks the agent to write anything) | Run the **Apply Protocol** below |
+| (User asks the agent to write anything) | Run the **Apply Protocol** below (starts with **Context Hygiene** check) |
 | "show me my anchor" / "show me my fingerprints" | Read the relevant `voice/*.md` and report |
 | "regenerate my profile" / "re-analyze my corpus" | Run the **Analysis Protocol** below |
 | "make a book voice / business voice / [context] voice anchor" | Run the **Anchor Protocol** for that specific register — see Multi-Register Anchors |
@@ -515,10 +515,53 @@ When the user says "add this to my voice profile" or pastes new writing:
 2. Run the **Analysis Protocol** above — regenerates stats / never-rules / fingerprints / status
 3. Report new tier if it changed: "You crossed [tier threshold] — full NEVER coverage is now active."
 
+## Context Hygiene
+
+**Reset context before applying voice to fresh writing.** Voice profiles fight against active conversation context — and lose.
+
+### Why it matters
+
+1. **Anchor blends are weighted training-data hints.** A long conversation's prose outweighs them. If the session has read 5k tokens of prose A, the model's "current style sample" is prose A — not the anchor's `26% Peterson + 22% Sapolsky`.
+2. **NEVER rules lose to in-context priming.** If em-dashes appeared 200 times in the conversation, the next paragraph wants em-dashes. The rule has to actively suppress on every token, and it leaks.
+3. **First generated tokens set cadence.** Fresh context = first tokens land on the anchor cold. Polluted context = first tokens drift from the conversation, and the rest of the paragraph follows.
+
+### The rule
+
+| Situation | Practice |
+|-----------|----------|
+| First piece of fresh writing in this session | **Reset.** Start a fresh session. Apply Protocol loads voice files cold. |
+| Iteration on already-voice-applied writing (review → revise → review) | **Stay.** The context IS the voice you locked in; resetting loses it. |
+
+### Detection
+
+Surface the Context Hygiene prompt when ALL THREE conditions hit:
+
+1. Voice profile is **set up** — Tier 1 or higher, and `voice/anchor.md` (or any `voice/anchor-*.md`) exists.
+2. Request is **fresh writing**, not iteration on existing voice-applied output.
+3. Session has **substantial prior context unrelated to the writing task** (rough heuristic: more than a few turns of unrelated work, or any reading/discussion not directly setting up this writing task).
+
+Skip the prompt for brand-new sessions or when the prior context IS the writing-task setup (we just discussed what to write — that context is useful priming, not pollution).
+
+### The prompt to surface
+
+> Voice profile is set up at **Tier N**. Context here is polluted with **<one-line summary of what's in active context>**, which will pull output toward that register instead of the locked voice.
+>
+> For best output, start a fresh session and run:
+>
+> ```
+> /writers-voice
+> <then ask for your writing task>
+> ```
+>
+> Or tell me **"write here anyway"** and I'll proceed with the active context.
+
+Adapt the slash command and the "writing task" phrasing to match what the user actually asked for.
+
 ## Apply Protocol (write-time)
 
 When the user asks the agent to write **anything** and a populated `writers-voice` setup exists, load the right `voice/` files and apply them as constraints:
 
+0. **Run Context Hygiene check** (see section above). If all three conditions trigger and the user hasn't said "write here anyway", surface the prompt and stop. Don't proceed to step 1 until either the context is fresh or the user explicitly overrides.
 1. **Pick the right anchor**:
    - List `voice/anchor*.md`. If only `voice/anchor.md` exists, use it.
    - If `voice/anchor-<context>.md` files also exist, check whether the user's request explicitly names a context (e.g., "draft chapter 3 of the book" → `anchor-book.md`; "write a tweet" → `anchor-tweets.md`). Pick the matching one.
