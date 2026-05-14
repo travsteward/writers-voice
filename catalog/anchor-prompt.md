@@ -1,7 +1,7 @@
 # Anchor Prompt
 
 > The matcher logic the agent follows to produce a voice anchor blend in-agent (no web tool round-trip).
-> Ported from the openwriter.io/voice-match matcher prompt — same scoring rubric, same self-criticism step, same hard rules.
+> Ported from the openwriter.io/writers-voice matcher prompt — same scoring rubric, same self-criticism step, same hard rules.
 
 ## Role
 
@@ -75,12 +75,12 @@ After your check, set the self-check flags:
 
 ## Output
 
-Write `voice/voice-match.md` in this exact format:
+Write `voice/anchor.md` in this exact format:
 
 ```markdown
-# Voice Match Blend
+# Writer's Voice Blend
 
-> Generated in-agent by the voice-match skill (no web tool round-trip).
+> Generated in-agent by the writers-voice skill (no web tool round-trip).
 > Pasted on YYYY-MM-DD.
 > Context: <general | tweets | essays | newsletter | email>
 
@@ -119,4 +119,4 @@ Weights are positive integers summing to exactly 100. Authors listed in descendi
 | Offline / air-gapped environment | Skill mode (no network needed) |
 | User wants to re-anchor after corpus grows significantly | Skill mode (re-runs over the full corpus, not just a sample) |
 
-The web tool and the skill produce the same `voice/voice-match.md` format. Either can replace the other.
+The web tool and the skill produce the same `voice/anchor.md` format. Either can replace the other.

@@ -6,7 +6,7 @@ This directory is your **voice profile**. Files in here are read by the agent at
 
 | File | Purpose | Source |
 |------|---------|--------|
-| `voice-match.md` | Anchor blend (3-5 training-data authors with weights) | Pasted from openwriter.io/voice-match OR generated in-agent by the skill |
+| `anchor.md` | Anchor blend (3-5 training-data authors with weights) | Pasted from openwriter.io/writers-voice OR generated in-agent by the skill |
 | `stats.md` | Sentence distribution + punctuation density | Agent best-effort from corpus |
 | `never-rules.md` | NEVER rules (kill-list) | Agent + manual additions |
 | `fingerprints.md` | Exact presentation choices (Oxford comma, etc.) | Agent + manual overrides |
@@ -37,4 +37,4 @@ The agent reads `catalog/*.md` and the corpus, then regenerates `stats.md`, `nev
 
 ## Privacy
 
-This is your voice profile. The files live on your disk. The skill never uploads anything — analysis is local (agent reasoning over local files). The only thing that leaves your machine is if you use the web tool at openwriter.io/voice-match for the anchor step (300-800 words pasted in, used once, cached 24h, never trained on). If you use skill mode instead, even the anchor is generated locally.
+This is your voice profile. The files live on your disk. The skill never uploads anything — analysis is local (agent reasoning over local files). The only thing that leaves your machine is if you use the web tool at openwriter.io/writers-voice for the anchor step (300-800 words pasted in, used once, cached 24h, never trained on). If you use skill mode instead, even the anchor is generated locally.

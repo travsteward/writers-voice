@@ -1,14 +1,14 @@
 {
-  "name": "voice-match",
+  "name": "writers-voice",
   "version": "0.2.0",
-  "description": "Free constructed-voice skill for AI agents. Anchors writing to a training-data author blend (from openwriter.io/voice-match), agent best-effort extracts NEVER rules and presentation fingerprints from a growing local corpus. Pure markdown — no dependencies. Gets better as you add samples.",
+  "description": "Free constructed-voice skill for AI agents. Anchors writing to a training-data author blend (from openwriter.io/writers-voice), agent best-effort extracts NEVER rules and presentation fingerprints from a growing local corpus. Pure markdown — no dependencies. Gets better as you add samples.",
   "type": "module",
   "license": "MIT",
   "author": "Travis Steward",
-  "homepage": "https://openwriter.io/voice-match",
+  "homepage": "https://openwriter.io/writers-voice",
   "repository": {
     "type": "git",
-    "url": "https://github.com/travsteward/voice-match"
+    "url": "https://github.com/travsteward/writers-voice"
   },
   "keywords": [
     "claude",

@@ -1,8 +1,8 @@
-# voice-match
+# writers-voice
 
-> Free **constructed voice** for AI agents. The skill-based path to 60-80% voice-matched writing — no API, no signup, no corpus upload to anyone.
+> Free **constructed voice** for AI agents. The skill-based path to 60-80% writers-voiceed writing — no API, no signup, no corpus upload to anyone.
 
-Anchors the agent to a training-data author blend (matched at [openwriter.io/voice-match](https://openwriter.io/voice-match)), then the agent does best-effort extraction of NEVER rules + presentation fingerprints from a corpus you build up on your own disk. Pure markdown — no dependencies. Gets better as you add more samples.
+Anchors the agent to a training-data author blend (matched at [openwriter.io/writers-voice](https://openwriter.io/writers-voice)), then the agent does best-effort extraction of NEVER rules + presentation fingerprints from a corpus you build up on your own disk. Pure markdown — no dependencies. Gets better as you add more samples.
 
 The free counterpart to **Author's Voice** (the paid OpenWriter plugin with full sample-based RAG and inline edits).
 
@@ -13,15 +13,15 @@ The skill is **agent-agnostic** — pure markdown, no language runtime. Any LLM-
 ### Claude Code
 
 ```bash
-claude install github:travsteward/voice-match
+claude install github:travsteward/writers-voice
 ```
 
-Clones to `~/.claude/skills/voice-match/` and registers the skill with Claude Code.
+Clones to `~/.claude/skills/writers-voice/` and registers the skill with Claude Code.
 
 ### Vercel skills CLI (Claude Code, Codex, Cursor, and other agents)
 
 ```bash
-npx skills add travsteward/voice-match
+npx skills add travsteward/writers-voice
 ```
 
 Vercel's [open agent skills ecosystem](https://skills.sh) — works across every agent the CLI supports.
@@ -29,7 +29,7 @@ Vercel's [open agent skills ecosystem](https://skills.sh) — works across every
 ### Manual (any agent)
 
 ```bash
-git clone https://github.com/travsteward/voice-match
+git clone https://github.com/travsteward/writers-voice
 ```
 
 Then drop the cloned folder wherever your agent loads skills from. The `SKILL.md` at the root has the trigger phrases and routing logic the agent reads.
@@ -39,7 +39,7 @@ Then drop the cloned folder wherever your agent loads skills from. The `SKILL.md
 Two paths — pick one:
 
 **Path A — Web tool first (fastest first-run)**
-1. Visit [openwriter.io/voice-match](https://openwriter.io/voice-match), paste 300-800 words of your writing, copy the result block.
+1. Visit [openwriter.io/writers-voice](https://openwriter.io/writers-voice), paste 300-800 words of your writing, copy the result block.
 2. Tell your agent: *"set up my voice match"*. Paste the block when prompted.
 3. **Seed your corpus**: paste 2-5 paragraphs that feel most like you. The agent saves them under `voice/corpus/`.
 4. Done.
@@ -47,10 +47,10 @@ Two paths — pick one:
 **Path B — Skill mode (no web round-trip)**
 1. Tell your agent: *"set up my voice match"* and *"I want to skip the web tool."*
 2. Paste 2-5 paragraphs of your writing — the agent saves them under `voice/corpus/`.
-3. The agent runs the Anchor Protocol over your corpus and writes `voice/voice-match.md` directly.
+3. The agent runs the Anchor Protocol over your corpus and writes `voice/writers-voice.md` directly.
 4. Done.
 
-Both paths produce the same `voice/voice-match.md`. Every future write the agent does for you pulls your voice profile and applies it as constraints.
+Both paths produce the same `voice/writers-voice.md`. Every future write the agent does for you pulls your voice profile and applies it as constraints.
 
 The skill is self-routing — you don't memorize subcommands. Just tell the agent what you want:
 
@@ -62,7 +62,7 @@ The skill is self-routing — you don't memorize subcommands. Just tell the agen
 
 Two layers:
 
-- **Programmatic anchor** — [openwriter.io/voice-match](https://openwriter.io/voice-match). Deterministic feature extraction + Claude-as-matcher. The web tool produces the author blend.
+- **Programmatic anchor** — [openwriter.io/writers-voice](https://openwriter.io/writers-voice). Deterministic feature extraction + Claude-as-matcher. The web tool produces the author blend.
 - **Best-effort everything else** — this skill. The agent reads `catalog/*.md` (instructions on what to look for) plus your `voice/corpus/*` (your writing) and writes the analysis output files.
 
 No Node scripts. No `npm install`. Pure markdown skill. The agent is the extractor.
@@ -73,7 +73,7 @@ Your voice profile lives in `voice/` as six `.md` files:
 
 | File | Source | Purpose |
 |------|--------|---------|
-| `voice-match.md` | Paste from [openwriter.io/voice-match](https://openwriter.io/voice-match) | 3-5 training-data authors with weights — the anchor |
+| `writers-voice.md` | Paste from [openwriter.io/writers-voice](https://openwriter.io/writers-voice) | 3-5 training-data authors with weights — the anchor |
 | `stats.md` | Agent best-effort from corpus | Sentence distribution + punctuation density |
 | `never-rules.md` | Agent + manual additions | AI words/transitions/phrases to never use |
 | `fingerprints.md` | Agent + manual overrides | Exact presentation choices (Oxford comma, em-dash spacing, etc.) |
@@ -110,13 +110,13 @@ Just keep adding writing samples over time. The skill nudges you toward the next
 
 - Your voice data lives entirely on your disk. `.gitignore` excludes everything in `voice/` from the public repo.
 - The skill never uploads your corpus anywhere.
-- The only thing that leaves your machine is the initial 300-800 word paste into openwriter.io/voice-match for the anchor matching step — that's cached 24h by hash and never trained on (Anthropic API retention controls honored).
+- The only thing that leaves your machine is the initial 300-800 word paste into openwriter.io/writers-voice for the anchor matching step — that's cached 24h by hash and never trained on (Anthropic API retention controls honored).
 
 ## Companion Skills
 
 - **`/anti-ai`** — post-pass that strips AI fingerprints from any text. Pairs well as a final step.
 - **`/voice-presets`** — alternative for users who want a generic frame (authority / provocateur / logical / storyteller / business) instead of a custom anchor. Zero setup.
-- **Author's Voice** plugin (paid, OpenWriter) — the upgrade: full sample-based RAG with deterministic extraction, inline edits, no manual setup. The skill nudges you toward it when you outgrow voice-match.
+- **Author's Voice** plugin (paid, OpenWriter) — the upgrade: full sample-based RAG with deterministic extraction, inline edits, no manual setup. The skill nudges you toward it when you outgrow writers-voice.
 
 ## Re-analyzing your corpus
 
@@ -131,7 +131,7 @@ There's no CLI to run. The analysis is the agent reading and writing markdown.
 ## Requirements
 
 - A Claude Code or Claude API agent that supports skills (no Node.js dependency)
-- An initial visit to [openwriter.io/voice-match](https://openwriter.io/voice-match) for the anchor (free, no signup)
+- An initial visit to [openwriter.io/writers-voice](https://openwriter.io/writers-voice) for the anchor (free, no signup)
 
 ## License
 
