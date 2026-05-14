@@ -1,11 +1,11 @@
 {
   "name": "voice-anchor",
-  "version": "0.1.0",
-  "description": "Free constructed-voice skill for AI agents. Anchors writing to a training-data author blend (from openwriter.io/voice-match), auto-extracts NEVER rules and presentation fingerprints from a growing local corpus. Gets better over time.",
+  "version": "0.2.0",
+  "description": "Free constructed-voice skill for AI agents. Anchors writing to a training-data author blend (from openwriter.io/voice-anchor), agent best-effort extracts NEVER rules and presentation fingerprints from a growing local corpus. Pure markdown — no dependencies. Gets better as you add samples.",
   "type": "module",
   "license": "MIT",
   "author": "Travis Steward",
-  "homepage": "https://openwriter.io/voice-match",
+  "homepage": "https://openwriter.io/voice-anchor",
   "repository": {
     "type": "git",
     "url": "https://github.com/travsteward/voice-anchor"
@@ -21,16 +21,9 @@
     "authors-voice",
     "anti-ai"
   ],
-  "bin": {
-    "voice-anchor-extract": "./extract.mjs"
-  },
-  "engines": {
-    "node": ">=22.0.0"
-  },
   "files": [
     "SKILL.md",
-    "extract.mjs",
-    "lib/",
+    "catalog/",
     "voice/README.md",
     "voice/corpus/.gitkeep",
     "LICENSE",
