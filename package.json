@@ -1,0 +1,39 @@
+{
+  "name": "voice-anchor",
+  "version": "0.1.0",
+  "description": "Free constructed-voice skill for AI agents. Anchors writing to a training-data author blend (from openwriter.io/voice-match), auto-extracts NEVER rules and presentation fingerprints from a growing local corpus. Gets better over time.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Travis Steward",
+  "homepage": "https://openwriter.io/voice-match",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/travsteward/voice-anchor"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skill",
+    "voice",
+    "writing",
+    "ai",
+    "openwriter",
+    "authors-voice",
+    "anti-ai"
+  ],
+  "bin": {
+    "voice-anchor-extract": "./extract.mjs"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "files": [
+    "SKILL.md",
+    "extract.mjs",
+    "lib/",
+    "voice/README.md",
+    "voice/corpus/.gitkeep",
+    "LICENSE",
+    "README.md"
+  ]
+}
