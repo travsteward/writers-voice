@@ -26,10 +26,21 @@ Restart your Claude Code session.
 
 ## Quick Start
 
-1. **Get your anchor** — Visit [openwriter.io/voice-anchor](https://openwriter.io/voice-anchor), paste 300-800 words of your writing, copy the result block.
-2. **Tell your agent**: *"set up my voice anchor"*. Paste the block when prompted.
+Two paths — pick one:
+
+**Path A — Web tool first (fastest first-run)**
+1. Visit [openwriter.io/voice-anchor](https://openwriter.io/voice-anchor), paste 300-800 words of your writing, copy the result block.
+2. Tell your agent: *"set up my voice anchor"*. Paste the block when prompted.
 3. **Seed your corpus**: paste 2-5 paragraphs that feel most like you. The agent saves them under `voice/corpus/`.
-4. **Done.** Every future write the agent does for you pulls your voice profile and applies it as constraints.
+4. Done.
+
+**Path B — Skill mode (no web round-trip)**
+1. Tell your agent: *"set up my voice anchor"* and *"I want to skip the web tool."*
+2. Paste 2-5 paragraphs of your writing — the agent saves them under `voice/corpus/`.
+3. The agent runs the Anchor Protocol over your corpus and writes `voice/voice-match.md` directly.
+4. Done.
+
+Both paths produce the same `voice/voice-match.md`. Every future write the agent does for you pulls your voice profile and applies it as constraints.
 
 The skill is self-routing — you don't memorize subcommands. Just tell the agent what you want:
 
@@ -66,6 +77,8 @@ The skill ships with a read-only `catalog/`:
 - `ai-tells.md` — 60+ AI words/transitions/phrases the agent counts against
 - `fingerprints.md` — 8 binary presentation detectors + decision rules
 - `hurdle.md` — the authenticity threshold logic that distinguishes "user's voice" from "AI contamination"
+- `anchor-prompt.md` — the stylometry matcher prompt for in-agent anchor generation (the skill-mode equivalent of the web tool)
+- `author-hints.md` — curated list of 60+ training-data authors with prose-feature notes
 
 The agent loads `voice/` at write time and applies everything as hard constraints. The NEVER rules are non-negotiable — they suppress the AI training-data pull that otherwise leaks "delve" and em-dashes into everything.
 
