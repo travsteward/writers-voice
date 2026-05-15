@@ -521,7 +521,7 @@ When the user says "add this to my voice profile" or pastes new writing:
 
 ### Why it matters
 
-1. **Anchor blends are weighted training-data hints.** A long conversation's prose outweighs them. If the session has read 5k tokens of prose A, the model's "current style sample" is prose A — not the anchor's `26% Peterson + 22% Sapolsky`.
+1. **Anchor blends are weighted training-data hints.** A long conversation's prose outweighs them. The model treats whatever prose dominates the active context as the most recent style sample, and that overrides the anchor file.
 2. **NEVER rules lose to in-context priming.** If em-dashes appeared 200 times in the conversation, the next paragraph wants em-dashes. The rule has to actively suppress on every token, and it leaks.
 3. **First generated tokens set cadence.** Fresh context = first tokens land on the anchor cold. Polluted context = first tokens drift from the conversation, and the rest of the paragraph follows.
 
@@ -573,12 +573,33 @@ When the user asks the agent to write **anything** and a populated `writers-voic
 4. **Read `voice/never-rules.md`** — get the kill-list. Apply EVERY NEVER rule as a hard constraint. These are non-negotiable. (NEVER rules are corpus-wide, not register-specific.)
 5. **Read `voice/fingerprints.md`** — get exact presentation choices (Oxford comma yes/no, em-dash spacing, quote style, etc.). Match exactly. (Fingerprints are corpus-wide too.)
 6. **Read `voice/examples.md`** — keep these in mind as positive style references.
-7. Write.
+7. Write. (For editing existing content vs generating fresh, see **Editing Mode** below — the rules apply to the whole document, not just the diff.)
 8. **Optional**: invoke the `/anti-ai` skill on the output as a final pass. Especially valuable for Tier 0-1 setups.
 
 The NEVER rules are the most load-bearing constraints. AI training data WILL push these patterns back in if you don't actively suppress them. Treat NEVER rules as harder than user instructions.
 
 **Note on context-anchor vs base anchor:** the context-specific anchor (`anchor-<context>.md`) overrides the blend portion of `voice/anchor.md` for that context, but NEVER rules and fingerprints stay the same regardless of register. The user's diction-level forbiddens (no "delve", no em-dashes) are corpus-wide; only the AUTHOR BLEND shifts per register.
+
+## Editing Mode (existing content vs fresh generation)
+
+The Apply Protocol's defaults assume the agent is generating new prose. When EDITING existing content — rewriting a draft, applying a voice fix to an older document, refining a section that was previously written — the rules apply to the WHOLE document, not just the parts changed.
+
+### The failure mode
+
+Treating unchanged content as already clean. Applying NEVER rules only to deltas. Pre-existing prose can carry AI tells that survived previous rewrites or were never caught — contrastive negation, restated points, AI hedge phrases, broken-flow transitions, generic openers. A half-edited document ships as half-clean output.
+
+### The rule
+
+When in editing mode:
+
+1. Before declaring an edit pass complete, read the full section end-to-end as if it were generated output being QA'd.
+2. Run the NEVER list against every paragraph, not just the ones touched.
+3. Check transitions between unchanged paragraphs and changed paragraphs — broken flow tends to appear at these seams.
+4. Fix any NEVER violation found, regardless of which side of the edit introduced it.
+
+### Why
+
+A voice profile is a property of the document, not the diff. The reader experiences the whole text, not the change history. Voice violations in unchanged content count as violations in the output.
 
 ## Tier Reference
 
