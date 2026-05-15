@@ -557,49 +557,122 @@ Skip the prompt for brand-new sessions or when the prior context IS the writing-
 
 Adapt the slash command and the "writing task" phrasing to match what the user actually asked for.
 
-## Apply Protocol (write-time)
+## The Delegation Model
 
-When the user asks the agent to write **anything** and a populated `writers-voice` setup exists, load the right `voice/` files and apply them as constraints:
+The Apply Protocol delegates voice-matched writing to a sub-agent. The main agent never generates voice-matched prose directly. This is the architectural answer to two structural problems.
 
-0. **Run Context Hygiene check** (see section above). If all three conditions trigger and the user hasn't said "write here anyway", surface the prompt and stop. Don't proceed to step 1 until either the context is fresh or the user explicitly overrides.
+### Problem 1: The ghost in the machine
+
+Every model has a default voice baked into its weights through RLHF training. This default — the *ghost* — overrides any attempt to emulate a different voice from examples. Telling a model "write like this author, here are samples" loses to the ghost. The examples become soft hints; the ghost wins on every generation.
+
+The escape: don't ask the model to emulate. **Activate specific training distributions at specific weights.** *"You write at 26% Author A + 22% Author B + 20% Author C..."* routes the model to internal patterns it already has. The blend IS the voice — we're not teaching, we're invoking.
+
+### Problem 2: Context pollution
+
+A long conversation accumulates content that the model treats as the most recent style sample. By the time the user asks for fresh writing, the model's "current style" is whatever dominated the prior turns — not the locked voice profile. The anchor file sits in context but ages.
+
+The escape: spawn a fresh sub-agent for every voice-matched write. The sub-agent has zero session pollution. The blend is the dominant signal because it is the only signal in that fresh context.
+
+### The role split
+
+| Agent | State | Role |
+|-------|-------|------|
+| **Main agent (editor)** | Polluted, deeply contextualized | Curator, prompt-assembler, integrator |
+| **Sub-agent (minion)** | Clean, fresh context | Pure generator. Receives crafted prompt, produces prose, dies |
+
+The editor's pollution is a *feature*. Session knowledge — what content goes where, what corrections have been made, what coined terms exist, what's been said — becomes editorial judgment. This judgment gets distilled into surgical instructions for the minion.
+
+The minion never sees the conversation. It gets only what the editor packs into its system prompt. It generates. It returns. Its context dies.
+
+### Style vs Content
+
+The split that makes this architecture work cleanly:
+
+- **STYLE** = the HOW. Sentence cadence, rhetorical patterns, punctuation rhythm, paragraph structure, register. The hard part — where the ghost lives. Solved by the anchor blend (heavy lift) plus cheap repairs (NEVER rules, fingerprints, stats).
+- **CONTENT** = the WHAT. Coined terms, arguments, domain vocabulary, the source paragraph itself. Trivial — the model produces whatever content the prompt provides.
+
+The minion's prompt explicitly separates these. STYLE comes from the blend + repairs. CONTENT comes from the source + a verbatim-preserve list of the author's coined terms.
+
+## Apply Protocol (write-time, delegation-based)
+
+When the user asks for any voice-matched write and a populated `writers-voice` setup exists, the editor (main agent) delegates to a clean sub-agent (the minion). The editor never generates voice-matched prose directly in main context.
+
+0. **Run Context Hygiene check** (see section above). If the editor itself is too polluted to even orchestrate cleanly, surface the prompt for a fresh session. Otherwise proceed.
+
 1. **Pick the right anchor**:
    - List `voice/anchor*.md`. If only `voice/anchor.md` exists, use it.
-   - If `voice/anchor-<context>.md` files also exist, check whether the user's request explicitly names a context (e.g., "draft chapter 3 of the book" → `anchor-book.md`; "write a tweet" → `anchor-tweets.md`). Pick the matching one.
-   - If the user has been working on a specific project in the session (file paths, file names, recent topic), infer the context.
-   - If ambiguous, ask: "I have anchors for [list]. Which context?"
+   - If `voice/anchor-<context>.md` files exist, infer or ask which context fits the request.
    - Fallback to `voice/anchor.md`.
-2. **Read the chosen anchor** — get the blend. Prepend to your style mental model: "Write in 60% Mark Manson + 25% James Clear + 15% Naval mode."
-3. **Read `voice/stats.md`** — get the sentence distribution. Match it.
-4. **Read `voice/never-rules.md`** — get the kill-list. Apply EVERY NEVER rule as a hard constraint. These are non-negotiable. (NEVER rules are corpus-wide, not register-specific.)
-5. **Read `voice/fingerprints.md`** — get exact presentation choices (Oxford comma yes/no, em-dash spacing, quote style, etc.). Match exactly. (Fingerprints are corpus-wide too.)
-6. **Read `voice/examples.md`** — keep these in mind as positive style references.
-7. Write. (For editing existing content vs generating fresh, see **Editing Mode** below — the rules apply to the whole document, not just the diff.)
-8. **Optional**: invoke the `/anti-ai` skill on the output as a final pass. Especially valuable for Tier 0-1 setups.
 
-The NEVER rules are the most load-bearing constraints. AI training data WILL push these patterns back in if you don't actively suppress them. Treat NEVER rules as harder than user instructions.
+2. **Load voice files** (the editor needs them to assemble the minion's prompt):
+   - Chosen `voice/anchor*.md`
+   - `voice/never-rules.md`
+   - `voice/fingerprints.md`
+   - `voice/stats.md`
+   - `voice/examples.md` — **load for editorial reference; do NOT include in the minion's prompt by default.** Examples trigger the emulate-from-examples failure mode (the ghost reads them as soft hints and overrides).
 
-**Note on context-anchor vs base anchor:** the context-specific anchor (`anchor-<context>.md`) overrides the blend portion of `voice/anchor.md` for that context, but NEVER rules and fingerprints stay the same regardless of register. The user's diction-level forbiddens (no "delve", no em-dashes) are corpus-wide; only the AUTHOR BLEND shifts per register.
+3. **Identify task scope** — single paragraph, batch, whole beat, whole section. Send the whole scope as one batch to the minion. Do not split into multiple sub-agent calls per paragraph.
 
-## Editing Mode (existing content vs fresh generation)
+4. **Assemble the minion's system prompt** — five sections:
 
-The Apply Protocol's defaults assume the agent is generating new prose. When EDITING existing content — rewriting a draft, applying a voice fix to an older document, refining a section that was previously written — the rules apply to the WHOLE document, not just the parts changed.
+   **STYLE CONFIG (training-data activation):**
+   - The anchor blend with weights, framed as identity: *"You write at this exact training-data blend: X% Author A + Y% Author B..."*
+   - Maintain-the-proportions instruction.
+   - Anti-default reminder: *"Do not soften toward generic literary register. The blend IS the voice."*
 
-### The failure mode
+   **STYLE REPAIRS (cheap polish layer):**
+   - `voice/never-rules.md` content verbatim
+   - `voice/fingerprints.md` content verbatim
+   - `voice/stats.md` distribution targets verbatim
 
-Treating unchanged content as already clean. Applying NEVER rules only to deltas. Pre-existing prose can carry AI tells that survived previous rewrites or were never caught — contrastive negation, restated points, AI hedge phrases, broken-flow transitions, generic openers. A half-edited document ships as half-clean output.
+   **CONTENT (preserve verbatim):**
+   - List of coined terms the source uses (extracted by the editor)
+   - Instruction: *"Preserve these terms exactly. Do not paraphrase, substitute synonyms, or 'improve' them."*
 
-### The rule
+   **SESSION-DERIVED CONSTRAINTS** (the editor's value-add — only when relevant):
+   - Recent in-session corrections distilled into rules
+   - Recently-used phrases to avoid duplication across paragraphs
+   - User-stated editorial direction
 
-When in editing mode:
+   **TASK + FORMAT:**
+   - The specific rewrite task
+   - Source text
+   - Output format: *"Return prose only. No commentary, no diff, no explanation, no markdown wrapper."*
 
-1. Before declaring an edit pass complete, read the full section end-to-end as if it were generated output being QA'd.
-2. Run the NEVER list against every paragraph, not just the ones touched.
-3. Check transitions between unchanged paragraphs and changed paragraphs — broken flow tends to appear at these seams.
-4. Fix any NEVER violation found, regardless of which side of the edit introduced it.
+5. **Spawn the minion**: `model: "opus"`, `subagent_type: "general-purpose"`, `prompt: <assembled>`.
 
-### Why
+6. **Receive output.** Treat as raw material for integration. Do not regenerate or "improve" the minion's prose in main context — the minion's output IS the voice-matched result.
 
-A voice profile is a property of the document, not the diff. The reader experiences the whole text, not the change history. Voice violations in unchanged content count as violations in the output.
+7. **Integrate via openwriter** (`write_to_pad` for edits, `populate_document` for new docs).
+
+8. **Optional**: invoke `/anti-ai` on the integrated output as a final AI-detection pass.
+
+### Why opus
+
+Voice work requires nuanced style routing. Opus has the deepest internal patterns for the training-data authors most anchors invoke. Sonnet works as a fallback. Haiku loses voice fidelity — its base patterns dominate over the blend signal.
+
+### Granularity
+
+One sub-agent per natural editing unit — beat, section, blog post, tweet thread. Within that unit, the sub-agent rewrites all paragraphs in one pass and returns structured output. This balances isolation (no main-context pollution) with efficiency (profile loaded once per unit, not per paragraph).
+
+### Examples handling
+
+`voice/examples.md` is a CONTENT reference for the editor, not a style reference for the minion. Do not pass examples to the minion as "match this style" — that triggers the emulate-from-examples failure mode. Use examples for editorial reference: confirming domain coverage, identifying coined terms, sanity-checking minion output quality.
+
+### Note on context-anchor vs base anchor
+
+The context-specific anchor (`anchor-<context>.md`) overrides the blend portion of `voice/anchor.md` for that context. NEVER rules and fingerprints stay the same regardless of register. The user's diction-level forbiddens are corpus-wide; only the AUTHOR BLEND shifts per register.
+
+## Editing Mode (editor's scope decision)
+
+The minion always operates on its input as one whole. There is no "diff" inside the minion's context — it sees the source text and produces the rewrite of all of it. The "apply rules to the whole document, not just the diff" failure mode is solved by the architecture itself.
+
+The editing-vs-generating distinction matters only for the **editor's scope decision**:
+
+- When **editing existing content** (rewriting a draft, applying a voice fix to an older section), send the whole section to the minion as one batch. Do not try to send only the "changed" parts — the minion needs full context to maintain flow and apply rules across the whole.
+- When **generating new content**, the source is whatever brief or outline the user provides.
+
+The editor's responsibility: send the right scope. If a section has 8 paragraphs and 6 need voice fixes, send all 8 (preserve the 2 clean ones in the source, instruct: *"preserve content, rewrite all paragraphs in the blend"*). The minion returns clean output for the whole section. The editor integrates by replacing the original with the minion's output.
 
 ## Tier Reference
 
