@@ -114,7 +114,7 @@ Run any time the corpus changes.
 
 1. **Read inputs.** Concatenate every file in `voice/corpus/` (strip frontmatter). Count words. Read `catalog/ai-tells.md`, `catalog/fingerprints.md`, `catalog/hurdle.md`.
 2. **Compute deterministic tally** (best effort — counts may drift ±1 on long corpora):
-   - **Sentence distribution**: split on `[.!?]\s`, compute short/medium/long/very-long percentages, average length. Set `short_max` (25th-pct, clamped [6,12]) and `long_min` (75th-pct, clamped [18,28]).
+   - **Sentence distribution**: split on `[.!?]\s`, compute short/medium/long/very-long percentages, average length. Set `short_max` (25th-pct, clamped [6,12]) and `long_min` (75th-pct, clamped [18,28]). Do NOT emit a sentence-length cap in the apply directive — the corpus distribution carries the right ceiling and an arbitrary cap suppresses signature long sentences.
    - **Punctuation density per 1k words** for em/en dash, colon, semicolon, question, exclamation, ellipsis, paren, bracket, straight/curly quotes. Categorize as `never` / `rare` / `low` / `strong`.
    - **AI-tell tally**: count each item from `catalog/ai-tells.md`. Apply hurdle from `catalog/hurdle.md`: passes hurdle → preserve; fails → emit NEVER rule; below-hurdle but present → log to `below_hurdle`.
    - **Fingerprints**: apply each detector from `catalog/fingerprints.md` with its decision rule.
@@ -163,11 +163,14 @@ When the user asks for any voice-matched write:
 1. **Pick the anchor.** List `voice/anchor*.md`. If only `voice/anchor.md` exists, use it. If context-specific anchors exist, infer from request or ask. Fallback to `voice/anchor.md`.
 2. **Assemble the minion prompt.** Read `prompts/skeleton.md`. For each `{INCLUDE: <path>}` marker, read that file and substitute its full contents in place. If a referenced file doesn't exist (e.g., user hasn't curated examples), drop the entire `{INCLUDE: ...}` line AND the section header immediately above it. If a context-specific anchor applies, swap the `voice/anchor.md` path in the skeleton's anchor injection to `voice/anchor-<context>.md` before processing.
 3. **Fill the `{TASK}` placeholder.** Write the editor's brief in plain prose. Required: COMMITMENTS — what must be true of the output (concepts, claims, sequence, register, avoidances, length/scope). Optional: any depth of additional guidance the editor judges useful — structural beats, paragraph patterns, pacing, source draft to rewrite, specific moves to land. Vague to highly specific is the editor's call based on the piece.
+   - **Recommended for high-stakes writing: include CADENCE PRESCRIPTION per paragraph.** Empirically lifts voice fidelity ~0.5 points over baseline. Counterintuitive — explicit rhythm scaffolding doesn't constrain content; it FREES capacity by removing "what shape should this take?" overhead. Example: *"Para 1: open with 3 short declaratives, stack medium with concrete examples, close with one analytical long. Para 2: alternate short claim with longer explanatory, end with sharp short. Para 3: build with longer analytical, end with single-line aphoristic close."*
+   - **Vary cadence prescriptions across sections.** If integrating multiple minion outputs into one document, give each section a different prescription. Same prescription per section produces document-scale rhythm repetition (every section opens with 3 shorts, closes with aphorism) — invisible at the section scale, mechanical at the document scale.
 4. **Spawn the minion.** `model: "opus"`, `subagent_type: "general-purpose"`, `prompt: <fully assembled skeleton>`.
 5. **Receive output.** Treat as raw material. Do not regenerate or "improve" the prose in main context — the minion's output IS the voice-matched result.
 6. **Integrate via openwriter** — `write_to_pad` for edits, `populate_document` for new docs.
-7. **Optional: parallel pick-best.** For high-stakes writing, spawn N (3-6) minions in parallel with the same brief. Then pick the best whole, mix and match across variants, refine the best with a follow-up minion, or hand all variants to the user.
-8. **Optional: invoke `/anti-ai`** for a final AI-detection pass.
+7. **Cross-section coherence review.** After integrating multiple minion outputs into one document, scan for what individual minion runs cannot see: cadence repetition across sections, recurring metaphors / phrases, structural sameness (same opens, same closes, same paragraph counts). Fix via re-spawn with varied prescription, surgical post-edit, or accept for low-stakes drafts. The editor is responsible for document-scale coherence; the minions are only responsible for section-scale quality.
+8. **Optional: parallel pick-best.** For high-stakes writing, spawn N (3-6) minions in parallel with the same brief. Then pick the best whole, mix and match across variants, refine the best with a follow-up minion, or hand all variants to the user.
+9. **Optional: invoke `/anti-ai`** for a final AI-detection pass.
 
 **Use opus.** Sonnet leaks NEVER violations 3+ per output where opus leaks 0-1. Haiku loses voice entirely.
 

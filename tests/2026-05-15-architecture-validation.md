@@ -124,6 +124,74 @@ What the 8+ outputs did that the under-8 outputs didn't:
 
 **Lock A2 architecture and ship.** Both metrics agree. Travis confirmed: *"Let's lock and ship this. I don't think more refinement should occur at this step. But make sure this test is recorded and reasoning preserved."*
 
+## Round 2 — Cadence test + cap removal (2026-05-15, same day)
+
+After shipping A2, two follow-up questions:
+1. The 30-word hard cap in stats.md — where did it come from? Trace showed it was an arbitrary heuristic (`long_min + 12`) propagated from old SKILL.md template. Travis's corpus has 2% of sentences at 36+ words, so the cap was suppressing real signature length variation. Bug.
+2. Cadence as a unique problem — would adding cadence guidance help or hurt? Travis hypothesized (and Claude agreed) that rigid cadence rules would constrain like style rules do, wasting capacity on compliance.
+
+**Cap fix shipped:** removed `Cap sentences over 30 words` line from `voice/stats.md`. Updated SKILL.md Analysis Protocol to instruct future regenerations not to emit a cap.
+
+**Cadence test (5 variants × 3 runs + 1 control = 18 minions):**
+
+| Variant | Description |
+|---------|-------------|
+| **E0** | Baseline WITH 30-word cap (validates the cap removal) |
+| **E1** | RIGID per-paragraph cadence prescription in TASK |
+| **E2** | STRUCTURED PATTERNS named in stats directive |
+| **E3** | ANNOTATED EXAMPLES from corpus (paragraph chunks with sentence lengths labeled) |
+| **E4** | BASELINE no cap, minimal stats (proposed new baseline) |
+| **E5** | FREE — drop stats.md entirely, anchor + NEVER + fingerprints + coined terms only |
+
+Same "crate" brief as the A2 test for continuity. Same blind voice scoring protocol — Travis scored 18 outputs in shuffled order under opaque IDs.
+
+**Results:**
+
+| Variant | Voice avg | Range |
+|---------|-----------|-------|
+| **E1 — RIGID per-paragraph cadence** | **8.93** | 8.4-9.3 |
+| E3 — annotated examples | 8.47 | 8.3-8.6 |
+| E4 — baseline no cap | 8.43 | 8.3-8.7 |
+| E2 — structured patterns | 7.77 | 7.3-8.7 |
+| E5 — free, no stats | 7.73 | 6.8-8.5 |
+| E0 — WITH 30-word cap | **7.70** | 7.1-8.1 |
+
+**Two big findings, both surprising:**
+
+**1. Cap removal validated and meaningful.** E0 (with cap) was the WORST variant at 7.70 avg. E4 (no cap) was 8.43 — a 0.73 point lift just from removing the bug. The cap was actively suppressing voice quality, not just signature long sentences.
+
+**2. Travis's "rigid rules constrain" hypothesis was WRONG for cadence.** Both Travis and Claude predicted E1 (rigid per-paragraph cadence prescription) would constrain the model and hurt output. Instead E1 won decisively (8.93 avg) — including the only two 9+ scores of the entire 18-output test (E1.1 = 9.1, E1.3 = 9.3). The rigid scaffolding didn't waste capacity on compliance — it FREED capacity by removing "what shape should this take?" overhead, letting the model focus on content. The 9+ outputs both hit the coherence-insight signals from earlier: causal grounding, concrete detail, surprising-in-a-good-way pivots.
+
+**The deeper principle:** for cadence specifically, rules don't constrain — they liberate. The model has to invent SOMETHING for the rhythm anyway; giving it the rhythm explicitly means it can spend tokens on content. Opposite of how style rules (NEVER, fingerprints) work, where the rules ARE the constraint.
+
+## Cross-section orchestration insight (Travis, 2026-05-15)
+
+**Travis observation:** rigid cadence prescriptions risk a document-scale problem invisible at the section scale. If every minion gets the same prescription (3 shorts → medium → long; alternation; aphoristic close), every section ends up with the same rhythm. Within one section the writing is great. Across sections, the reader notices the repeated structural moves — same opens, same closes, same alternation pattern. Mechanical at the document scale.
+
+**The fix:** the dirty editor's orchestration responsibility includes cross-section coherence review. After minion outputs come back, editor scans the document for:
+- Cadence repetition (every section opening with 3 shorts, closing with aphorism)
+- Phrase / metaphor repetition (same image recurring across sections)
+- Structural sameness (same paragraph count, same beat structure)
+
+Fixes (editor's choice):
+- Re-spawn offending section with a varied cadence prescription
+- Surgical post-edit (combine/split sentences to vary rhythm)
+- Vary cadence prescriptions across sections deliberately at brief-assembly time (per-section unique prescription)
+
+**The deeper principle:** this is a fundamental editor behavior regardless of cadence specifically — minion outputs are individually high-quality but the editor is responsible for ensuring they slot together as one coherent document. Cadence repetition is one specific case of the general problem. Travis: *"This should be a fundamental behaviour of the dirty editor regardless: making sure all the high quality writing from minions actually slots well."*
+
+## Architecture updates (2026-05-15)
+
+**Added to SKILL.md Apply Protocol:**
+
+1. **Cadence prescription as recommended OPTIONAL TASK element** for high-stakes writing. Editor specifies per-paragraph rhythm in the TASK section's free-form area. Empirically lifts voice ~0.5 points without constraining content (E1 vs E4 in this test).
+
+2. **Cross-section coherence review** as part of integration. When integrating multiple minion outputs into one document, editor scans for cadence repetition, recurring phrases, structural sameness — and fixes via re-spawn-with-variation OR surgical edits OR per-section varied prescriptions at brief-assembly time.
+
+3. **No-cap on sentence length** locked into stats.md generation. Old template emitted `long_min + 12` cap; new template explicitly forbids cap line. The corpus distribution carries the right ceiling; arbitrary cap suppresses signature long sentences.
+
+**All 18 outputs from this round preserved verbatim in `tests/2026-05-15-cadence-and-cap-test.md`** (separate file to keep this doc readable).
+
 **Architecture locked:**
 - Skeleton-based file injection ✓
 - Lean opener (just blend %s, no per-author exposition) ✓
