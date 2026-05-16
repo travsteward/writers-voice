@@ -94,6 +94,32 @@ User-recorded note on #4 (A2.1, score 7.2): *"would be higher but the examples i
 - Contrastive negation was the dominant NEVER leak; other categories were well-suppressed across all variants and didn't differentiate.
 - Voice scoring happened immediately after NEVER scoring in the same session — possible carryover priming.
 
+## Coherence insight (2026-05-15)
+
+**Travis observation:** outputs under 8 felt off — directionally correct but with off-putting specifics ("evenings filled by whatever app loaded fastest" — gestures at causality without grounding). Outputs over 8 felt tight, coherent, and sometimes surprising-in-a-good-way. Travis: *"It almost like the under-8 was cognitively impaired/constrained. The over-8 had freedom to fill in the gaps in rich, coherent ways."*
+
+**Best-estimate hypothesis: coherence and voice are downstream effects of the same thing — which "thinking mode" the opener activates in the model.**
+
+What the 8+ outputs did that the under-8 outputs didn't:
+
+1. **Named the causal agent AND its motive.** Under 8: *"the evenings get filled by whatever app loaded fastest"* (names the phenomenon, leaves the cause vague). Over 8: *"a streaming service whose only goal is the next autoplay"*, *"streaming algorithms that need you docile"*, *"ad buyers in another country"*. The brain reads "the algorithm" as a wave-of-hand; it reads "a streaming service whose only goal is the next autoplay" as a fully-modeled scenario it can verify against its own experience.
+
+2. **Used specific historical / physical pegs.** *"Men who died in 1955"* (who set the 9-to-5). *"City planner from 1972"*. *"The chair that ruins the lower back"*. *"Stocked once at twenty-two, still feeds the man at thirty-eight"*. These give the reader temporal and embodied placement — abstract claims get grounded in the body or in actual history.
+
+3. **Had a definitional pivot that landed.** *"It feels like personality. It is geometry."* *"He calls this realism. It is shrinkage."* *"Small box, small dog."* Micro-arguments that invert an assumption the reader holds. The under-8 outputs either skipped the pivot or had ones that just restated the prior sentence with different words.
+
+4. **Didn't waste tokens.** Under 8 outputs spent generation capacity on filler triplets (*"Not motivation, not insight, not another book"*), generic life-coach affirmations (*"Move one wall this week. Move another next week."*), and restatements. The over 8 outputs spent those same tokens on specifics, causal grounding, and surprising pivots.
+
+**The deeper principle:** the model has finite generation capacity per output. It can spend tokens on specific thinking (causal mechanisms, surprising connections, concrete pegs) OR on essay-template patterns (transitions, restated abstractions, motivational filler). Which mode it enters is set by the first 30-50 tokens of the prompt.
+
+**Why A2 won:** the lean blend + anti-default + anchor-first opener activates "fresh persona thinking" — the model can't rely on essay templates because it's been told to channel five specific authors and resist its own default register. That leaves more capacity for specific thinking, which produces both better style AND better coherence.
+
+**Why D2 was worst on voice:** putting style repairs first primes "constraint thinking" — the model spends its early tokens internalizing rules to avoid, not activating persona. By the time it generates content, it's in essay-mode trying to comply rather than persona-mode trying to channel. Style still mostly worked (the rules suppressed obvious tells) but content went generic.
+
+**Testable implication:** adding an explicit anti-essay-mode signal to the opener (something like *"think through each example concretely — what's the actual mechanism, who's the actual agent, what's their actual motive"*) should push more outputs into the 8+ band. Future architecture iteration.
+
+**Caveat:** C2 had one 8.7 and one 5.5 — wide variance suggests "mode activation" is partly stochastic even within a single variant. The opener biases the mode, doesn't fully determine it.
+
 ## Decision (2026-05-15)
 
 **Lock A2 architecture and ship.** Both metrics agree. Travis confirmed: *"Let's lock and ship this. I don't think more refinement should occur at this step. But make sure this test is recorded and reasoning preserved."*
