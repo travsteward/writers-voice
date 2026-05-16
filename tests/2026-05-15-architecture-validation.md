@@ -186,11 +186,48 @@ Fixes (editor's choice):
 
 1. **Cadence prescription as recommended OPTIONAL TASK element** for high-stakes writing. Editor specifies per-paragraph rhythm in the TASK section's free-form area. Empirically lifts voice ~0.5 points without constraining content (E1 vs E4 in this test).
 
-2. **Cross-section coherence review** as part of integration. When integrating multiple minion outputs into one document, editor scans for cadence repetition, recurring phrases, structural sameness — and fixes via re-spawn-with-variation OR surgical edits OR per-section varied prescriptions at brief-assembly time.
+2. **Cross-section coherence review** as part of integration. When integrating multiple minion outputs into one document, editor scans for cadence repetition, recurring phrases, structural sameness, AND coined term overuse — and fixes via re-spawn-with-variation OR surgical edits OR per-section varied prescriptions at brief-assembly time.
 
 3. **No-cap on sentence length** locked into stats.md generation. Old template emitted `long_min + 12` cap; new template explicitly forbids cap line. The corpus distribution carries the right ceiling; arbitrary cap suppresses signature long sentences.
 
 **All 18 outputs from this round preserved verbatim in `tests/2026-05-15-cadence-and-cap-test.md`** (separate file to keep this doc readable).
+
+## Commitments weight + coined terms tension (Travis observations, 2026-05-15)
+
+**Repetition Travis noticed across the 18 outputs:**
+
+- *"a small bounded environment produces a small bounded man"* appeared in nearly every output, often verbatim
+- *"schedule, space, social field, body"* enumerated as a stacked list in nearly every output
+- "extended biology" sometimes used incorrectly — model knew it was a load-bearing term but didn't fully grasp the concept
+- "terraform" sometimes felt forced — used because it was on the coined-terms list, not because the prose called for it
+
+**Insight 1: COMMITMENTS function as quasi-verbatim instructions.**
+
+When the editor writes *"Define the crate (a small bounded environment produces a small bounded man)"*, the parenthetical isn't guidance — the model treats it as the literal phrasing to reproduce. Every section gets that line. Same for *"Specify the layers being terraformed: schedule, space, social field, body"* — the colon-list becomes a near-mandatory injection in every output.
+
+**Two ways to write a commitment:**
+- **Abstract (model can phrase):** *"Define the crate"* — model uses training-data vocabulary to express the concept
+- **Verbatim (model will reproduce literally):** *"Define the crate (a small bounded environment produces a small bounded man)"* — locks specific phrasing into every output
+
+Neither is wrong. Editor needs to know which they're choosing. For multi-section work where phrasing should vary, write abstractly. For pieces where a specific definition MUST land, use literal.
+
+**Insight 2: coined terms have a definition vs steering tension.**
+
+Current `voice/coined-terms.md` format gives terse hints like `terraform (verb for environment shaping)`. Model uses the words but doesn't fully understand them — leads to misuse and forced placement. Adding definitions would fix the misuse but creates the same lock-in problem as commitments (the definition phrase appears verbatim in output).
+
+Possible middle ground (not yet tested): give coined terms by **association rather than definition**. Show the term used in 1-2 corpus sentences (no definition statement, just usage). Model infers meaning from context like humans do.
+
+This is also where injecting `voice/examples.md` would help — examples literally use coined terms in the author's voice with surrounding context. Travis's call: keep examples OUT for now since the test results are strong without them and we don't want examples polluting the comparison.
+
+**Insight 3: coined terms create document-scale repetition.**
+
+Coined terms get injected into EVERY minion call as MUST-PRESERVE. Every section uses them. Document ends up with "territory" appearing every 3 paragraphs, "extended biology" every section, etc. Same class of problem as cadence repetition — invisible at section scale, mechanical at document scale.
+
+**Travis's call: this MUST be a fundamental editor behavior.** Track which coined terms have been used heavily across sections; for subsequent minions, omit heavy-use terms from the coined-terms injection OR add an instruction to use sparingly. Codified into SKILL.md Apply Protocol step 7 (cross-section coherence review).
+
+**No conclusions changing the architecture beyond:**
+- Cross-section coherence review now explicitly includes coined-term overuse monitoring
+- Commitment writing guidance added: literal vs abstract phrasing has high downstream weight
 
 **Architecture locked:**
 - Skeleton-based file injection ✓

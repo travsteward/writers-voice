@@ -168,7 +168,15 @@ When the user asks for any voice-matched write:
 4. **Spawn the minion.** `model: "opus"`, `subagent_type: "general-purpose"`, `prompt: <fully assembled skeleton>`.
 5. **Receive output.** Treat as raw material. Do not regenerate or "improve" the prose in main context — the minion's output IS the voice-matched result.
 6. **Integrate via openwriter** — `write_to_pad` for edits, `populate_document` for new docs.
-7. **Cross-section coherence review.** After integrating multiple minion outputs into one document, scan for what individual minion runs cannot see: cadence repetition across sections, recurring metaphors / phrases, structural sameness (same opens, same closes, same paragraph counts). Fix via re-spawn with varied prescription, surgical post-edit, or accept for low-stakes drafts. The editor is responsible for document-scale coherence; the minions are only responsible for section-scale quality.
+7. **Cross-section coherence review.** After integrating multiple minion outputs into one document, scan for what individual minion runs cannot see:
+   - **Cadence repetition** across sections (same opens, same closes, same paragraph counts)
+   - **Recurring metaphors / phrases** (same image or quasi-verbatim phrasing across sections)
+   - **Structural sameness** (every section ends with the 4-layer enumeration, every section opens with 3 shorts)
+   - **Coined term overuse** — coined terms get injected into every minion call as MUST-PRESERVE, so every section uses them, producing document-scale repetition (e.g., "territory" appearing every 3 paragraphs). Track which coined terms have been used heavily; for subsequent minions, omit heavy-use terms from the coined-terms injection OR add an instruction to use sparingly.
+
+   Fix options: re-spawn with varied prescription, surgical post-edit (combine/split/swap), vary commitments and coined-terms lists per section at brief-assembly time, or accept for low-stakes drafts. The editor is responsible for document-scale coherence; the minions are only responsible for section-scale quality.
+
+   **Related: COMMITMENTS function as quasi-verbatim instructions.** When the editor writes a commitment with literal phrasing in parentheses (*"Define the crate (a small bounded environment produces a small bounded man)"*), the model treats the parenthetical as the exact phrasing to reproduce — every section gets that line. For multi-section work where phrasing should vary, write commitments abstractly (*"Define the crate"*) and let the model phrase. Use literal commitments only when a specific phrasing MUST land.
 8. **Optional: parallel pick-best.** For high-stakes writing, spawn N (3-6) minions in parallel with the same brief. Then pick the best whole, mix and match across variants, refine the best with a follow-up minion, or hand all variants to the user.
 9. **Optional: invoke `/anti-ai`** for a final AI-detection pass.
 
